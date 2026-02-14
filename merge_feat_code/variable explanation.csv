@@ -1,0 +1,183 @@
+Variable Name,Symbol,"Explanation (Notes: The absolute coordinate system is a world-fixed coordinate system with a fixed origin. All relative positions are defined as (neighbor/obstacle position _ ego pedestrian position). All relative velocities are defined as (neighbor velocity _ ego pedestrian velocity). The relative coordinate system is a pedestrian-centered coordinate system, where the y-axis is aligned with the direction from the pedestrian¡¯s current position toward the destination, and the x-axis denotes the lateral direction.)"
+dest_x,"x_{i,t}^\mathrm{d}",x-component of the relative position between the ego pedestrian and the destination in the absolute coordinate system
+dest_y,"y_{i,t}^\mathrm{d}",y-component of the relative position between the ego pedestrian and the destination in the absolute coordinate system
+v_x,"x_{i,t}^\mathrm{v}",x-component of the current velocity of the ego pedestrian in the relative coordinate system
+v_y,"y_{i,t}^\mathrm{v}",y-component of the current velocity of the ego pedestrian in the relative coordinate system
+rb_ped1_x,"x_{\mathrm{rb},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the right-back region in the relative coordinate system
+rb_ped1_y,"y_{\mathrm{rb},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the right-back region in the relative coordinate system
+rb_ped1_vx,"x_{\mathrm{rb},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the right-back region in the relative coordinate system
+rb_ped1_vy,"y_{\mathrm{rb},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the right-back region in the relative coordinate system
+rb_ped2_x,"x_{\mathrm{rb},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped2_y,"y_{\mathrm{rb},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped2_vx,"x_{\mathrm{rb},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped2_vy,"y_{\mathrm{rb},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped3_x,"x_{\mathrm{rb},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped3_y,"y_{\mathrm{rb},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped3_vx,"x_{\mathrm{rb},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped3_vy,"y_{\mathrm{rb},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the right-back region in the relative coordinate system
+rb_ped4_x,"x_{\mathrm{rb},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the right-back region in the relative coordinate system
+rb_ped4_y,"y_{\mathrm{rb},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the right-back region in the relative coordinate system
+rb_ped4_vx,"x_{\mathrm{rb},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the right-back region in the relative coordinate system
+rb_ped4_vy,"y_{\mathrm{rb},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the right-back region in the relative coordinate system
+rb_ped5_x,"x_{\mathrm{rb},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the right-back region in the relative coordinate system
+rb_ped5_y,"y_{\mathrm{rb},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the right-back region in the relative coordinate system
+rb_ped5_vx,"x_{\mathrm{rb},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the right-back region in the relative coordinate system
+rb_ped5_vy,"y_{\mathrm{rb},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the right-back region in the relative coordinate system
+rb_ob_x,"x_{\mathrm{rb},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the right-back region in the relative coordinate system
+rb_ob_y,"y_{\mathrm{rb},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the right-back region in the relative coordinate system
+rr_ped1_x,"x_{\mathrm{r},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the right region in the relative coordinate system
+rr_ped1_y,"y_{\mathrm{r},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the right region in the relative coordinate system
+rr_ped1_vx,"x_{\mathrm{r},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the right region in the relative coordinate system
+rr_ped1_vy,"y_{\mathrm{r},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the right region in the relative coordinate system
+rr_ped2_x,"x_{\mathrm{r},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the right region in the relative coordinate system
+rr_ped2_y,"y_{\mathrm{r},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the right region in the relative coordinate system
+rr_ped2_vx,"x_{\mathrm{r},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the right region in the relative coordinate system
+rr_ped2_vy,"y_{\mathrm{r},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the right region in the relative coordinate system
+rr_ped3_x,"x_{\mathrm{r},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the right region in the relative coordinate system
+rr_ped3_y,"y_{\mathrm{r},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the right region in the relative coordinate system
+rr_ped3_vx,"x_{\mathrm{r},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the right region in the relative coordinate system
+rr_ped3_vy,"y_{\mathrm{r},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the right region in the relative coordinate system
+rr_ped4_x,"x_{\mathrm{r},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the right region in the relative coordinate system
+rr_ped4_y,"y_{\mathrm{r},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the right region in the relative coordinate system
+rr_ped4_vx,"x_{\mathrm{r},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the right region in the relative coordinate system
+rr_ped4_vy,"y_{\mathrm{r},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the right region in the relative coordinate system
+rr_ped5_x,"x_{\mathrm{r},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the right region in the relative coordinate system
+rr_ped5_y,"y_{\mathrm{r},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the right region in the relative coordinate system
+rr_ped5_vx,"x_{\mathrm{r},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the right region in the relative coordinate system
+rr_ped5_vy,"y_{\mathrm{r},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the right region in the relative coordinate system
+rr_ob_x,"x_{\mathrm{r},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the right region in the relative coordinate system
+rr_ob_y,"y_{\mathrm{r},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the right region in the relative coordinate system
+rf_ped1_x,"x_{\mathrm{rf},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the right-front region in the relative coordinate system
+rf_ped1_y,"y_{\mathrm{rf},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the right-front region in the relative coordinate system
+rf_ped1_vx,"x_{\mathrm{rf},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the right-front region in the relative coordinate system
+rf_ped1_vy,"y_{\mathrm{rf},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the right-front region in the relative coordinate system
+rf_ped2_x,"x_{\mathrm{rf},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped2_y,"y_{\mathrm{rf},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped2_vx,"x_{\mathrm{rf},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped2_vy,"y_{\mathrm{rf},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped3_x,"x_{\mathrm{rf},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped3_y,"y_{\mathrm{rf},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped3_vx,"x_{\mathrm{rf},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped3_vy,"y_{\mathrm{rf},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the right-front region in the relative coordinate system
+rf_ped4_x,"x_{\mathrm{rf},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the right-front region in the relative coordinate system
+rf_ped4_y,"y_{\mathrm{rf},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the right-front region in the relative coordinate system
+rf_ped4_vx,"x_{\mathrm{rf},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the right-front region in the relative coordinate system
+rf_ped4_vy,"y_{\mathrm{rf},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the right-front region in the relative coordinate system
+rf_ped5_x,"x_{\mathrm{rf},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the right-front region in the relative coordinate system
+rf_ped5_y,"y_{\mathrm{rf},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the right-front region in the relative coordinate system
+rf_ped5_vx,"x_{\mathrm{rf},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the right-front region in the relative coordinate system
+rf_ped5_vy,"y_{\mathrm{rf},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the right-front region in the relative coordinate system
+rf_ob_x,"x_{\mathrm{rf},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the right-front region in the relative coordinate system
+rf_ob_y,"y_{\mathrm{rf},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the right-front region in the relative coordinate system
+ff_ped1_x,"x_{\mathrm{f},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the front region in the relative coordinate system
+ff_ped1_y,"y_{\mathrm{f},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the front region in the relative coordinate system
+ff_ped1_vx,"x_{\mathrm{f},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the front region in the relative coordinate system
+ff_ped1_vy,"y_{\mathrm{f},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the front region in the relative coordinate system
+ff_ped2_x,"x_{\mathrm{f},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the front region in the relative coordinate system
+ff_ped2_y,"y_{\mathrm{f},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the front region in the relative coordinate system
+ff_ped2_vx,"x_{\mathrm{f},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the front region in the relative coordinate system
+ff_ped2_vy,"y_{\mathrm{f},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the front region in the relative coordinate system
+ff_ped3_x,"x_{\mathrm{f},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the front region in the relative coordinate system
+ff_ped3_y,"y_{\mathrm{f},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the front region in the relative coordinate system
+ff_ped3_vx,"x_{\mathrm{f},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the front region in the relative coordinate system
+ff_ped3_vy,"y_{\mathrm{f},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the front region in the relative coordinate system
+ff_ped4_x,"x_{\mathrm{f},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the front region in the relative coordinate system
+ff_ped4_y,"y_{\mathrm{f},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the front region in the relative coordinate system
+ff_ped4_vx,"x_{\mathrm{f},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the front region in the relative coordinate system
+ff_ped4_vy,"y_{\mathrm{f},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the front region in the relative coordinate system
+ff_ped5_x,"x_{\mathrm{f},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the front region in the relative coordinate system
+ff_ped5_y,"y_{\mathrm{f},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the front region in the relative coordinate system
+ff_ped5_vx,"x_{\mathrm{f},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the front region in the relative coordinate system
+ff_ped5_vy,"y_{\mathrm{f},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the front region in the relative coordinate system
+ff_ob_x,"x_{\mathrm{f},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the front region in the relative coordinate system
+ff_ob_y,"y_{\mathrm{f},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the front region in the relative coordinate system
+lf_ped1_x,"x_{\mathrm{lf},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the left-front region in the relative coordinate system
+lf_ped1_y,"y_{\mathrm{lf},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the left-front region in the relative coordinate system
+lf_ped1_vx,"x_{\mathrm{lf},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the left-front region in the relative coordinate system
+lf_ped1_vy,"y_{\mathrm{lf},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the left-front region in the relative coordinate system
+lf_ped2_x,"x_{\mathrm{lf},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped2_y,"y_{\mathrm{lf},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped2_vx,"x_{\mathrm{lf},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped2_vy,"y_{\mathrm{lf},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped3_x,"x_{\mathrm{lf},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped3_y,"y_{\mathrm{lf},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped3_vx,"x_{\mathrm{lf},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped3_vy,"y_{\mathrm{lf},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the left-front region in the relative coordinate system
+lf_ped4_x,"x_{\mathrm{lf},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the left-front region in the relative coordinate system
+lf_ped4_y,"y_{\mathrm{lf},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the left-front region in the relative coordinate system
+lf_ped4_vx,"x_{\mathrm{lf},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the left-front region in the relative coordinate system
+lf_ped4_vy,"y_{\mathrm{lf},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the left-front region in the relative coordinate system
+lf_ped5_x,"x_{\mathrm{lf},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the left-front region in the relative coordinate system
+lf_ped5_y,"y_{\mathrm{lf},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the left-front region in the relative coordinate system
+lf_ped5_vx,"x_{\mathrm{lf},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the left-front region in the relative coordinate system
+lf_ped5_vy,"y_{\mathrm{lf},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the left-front region in the relative coordinate system
+lf_ob_x,"x_{\mathrm{lf},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the left-front region in the relative coordinate system
+lf_ob_y,"y_{\mathrm{lf},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the left-front region in the relative coordinate system
+ll_ped1_x,"x_{\mathrm{l},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the left region in the relative coordinate system
+ll_ped1_y,"y_{\mathrm{l},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the left region in the relative coordinate system
+ll_ped1_vx,"x_{\mathrm{l},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the left region in the relative coordinate system
+ll_ped1_vy,"y_{\mathrm{l},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the left region in the relative coordinate system
+ll_ped2_x,"x_{\mathrm{l},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the left region in the relative coordinate system
+ll_ped2_y,"y_{\mathrm{l},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the left region in the relative coordinate system
+ll_ped2_vx,"x_{\mathrm{l},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the left region in the relative coordinate system
+ll_ped2_vy,"y_{\mathrm{l},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the left region in the relative coordinate system
+ll_ped3_x,"x_{\mathrm{l},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the left region in the relative coordinate system
+ll_ped3_y,"y_{\mathrm{l},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the left region in the relative coordinate system
+ll_ped3_vx,"x_{\mathrm{l},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the left region in the relative coordinate system
+ll_ped3_vy,"y_{\mathrm{l},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the left region in the relative coordinate system
+ll_ped4_x,"x_{\mathrm{l},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the left region in the relative coordinate system
+ll_ped4_y,"y_{\mathrm{l},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the left region in the relative coordinate system
+ll_ped4_vx,"x_{\mathrm{l},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the left region in the relative coordinate system
+ll_ped4_vy,"y_{\mathrm{l},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the left region in the relative coordinate system
+ll_ped5_x,"x_{\mathrm{l},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the left region in the relative coordinate system
+ll_ped5_y,"y_{\mathrm{l},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the left region in the relative coordinate system
+ll_ped5_vx,"x_{\mathrm{l},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the left region in the relative coordinate system
+ll_ped5_vy,"y_{\mathrm{l},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the left region in the relative coordinate system
+ll_ob_x,"x_{\mathrm{l},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the left region in the relative coordinate system
+ll_ob_y,"y_{\mathrm{l},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the left region in the relative coordinate system
+lb_ped1_x,"x_{\mathrm{lb},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the left-back region in the relative coordinate system
+lb_ped1_y,"y_{\mathrm{lb},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the left-back region in the relative coordinate system
+lb_ped1_vx,"x_{\mathrm{lb},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the left-back region in the relative coordinate system
+lb_ped1_vy,"y_{\mathrm{lb},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the left-back region in the relative coordinate system
+lb_ped2_x,"x_{\mathrm{lb},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped2_y,"y_{\mathrm{lb},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped2_vx,"x_{\mathrm{lb},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped2_vy,"y_{\mathrm{lb},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped3_x,"x_{\mathrm{lb},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped3_y,"y_{\mathrm{lb},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped3_vx,"x_{\mathrm{lb},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped3_vy,"y_{\mathrm{lb},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the left-back region in the relative coordinate system
+lb_ped4_x,"x_{\mathrm{lb},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the left-back region in the relative coordinate system
+lb_ped4_y,"y_{\mathrm{lb},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the left-back region in the relative coordinate system
+lb_ped4_vx,"x_{\mathrm{lb},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the left-back region in the relative coordinate system
+lb_ped4_vy,"y_{\mathrm{lb},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the left-back region in the relative coordinate system
+lb_ped5_x,"x_{\mathrm{lb},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the left-back region in the relative coordinate system
+lb_ped5_y,"y_{\mathrm{lb},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the left-back region in the relative coordinate system
+lb_ped5_vx,"x_{\mathrm{lb},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the left-back region in the relative coordinate system
+lb_ped5_vy,"y_{\mathrm{lb},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the left-back region in the relative coordinate system
+lb_ob_x,"x_{\mathrm{lb},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the left-back region in the relative coordinate system
+lb_ob_y,"y_{\mathrm{lb},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the left-back region in the relative coordinate system
+bb_ped1_x,"x_{\mathrm{b},1,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the back region in the relative coordinate system
+bb_ped1_y,"y_{\mathrm{b},1,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 1st nearest neighbor in the back region in the relative coordinate system
+bb_ped1_vx,"x_{\mathrm{b},1,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the back region in the relative coordinate system
+bb_ped1_vy,"y_{\mathrm{b},1,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 1st nearest neighbor in the back region in the relative coordinate system
+bb_ped2_x,"x_{\mathrm{b},2,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the back region in the relative coordinate system
+bb_ped2_y,"y_{\mathrm{b},2,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 2nd nearest neighbor in the back region in the relative coordinate system
+bb_ped2_vx,"x_{\mathrm{b},2,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the back region in the relative coordinate system
+bb_ped2_vy,"y_{\mathrm{b},2,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 2nd nearest neighbor in the back region in the relative coordinate system
+bb_ped3_x,"x_{\mathrm{b},3,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the back region in the relative coordinate system
+bb_ped3_y,"y_{\mathrm{b},3,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 3rd nearest neighbor in the back region in the relative coordinate system
+bb_ped3_vx,"x_{\mathrm{b},3,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the back region in the relative coordinate system
+bb_ped3_vy,"y_{\mathrm{b},3,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 3rd nearest neighbor in the back region in the relative coordinate system
+bb_ped4_x,"x_{\mathrm{b},4,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the back region in the relative coordinate system
+bb_ped4_y,"y_{\mathrm{b},4,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 4th nearest neighbor in the back region in the relative coordinate system
+bb_ped4_vx,"x_{\mathrm{b},4,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the back region in the relative coordinate system
+bb_ped4_vy,"y_{\mathrm{b},4,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 4th nearest neighbor in the back region in the relative coordinate system
+bb_ped5_x,"x_{\mathrm{b},5,t}^\mathrm{np}",x-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the back region in the relative coordinate system
+bb_ped5_y,"y_{\mathrm{b},5,t}^\mathrm{np}",y-component of the relative position between the ego pedestrian and the 5th nearest neighbor in the back region in the relative coordinate system
+bb_ped5_vx,"x_{\mathrm{b},5,t}^\mathrm{nv}",x-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the back region in the relative coordinate system
+bb_ped5_vy,"y_{\mathrm{b},5,t}^\mathrm{nv}",y-component of the relative velocity between the ego pedestrian and the 5th nearest neighbor in the back region in the relative coordinate system
+bb_ob_x,"x_{\mathrm{b},t}^\mathrm{op}",x-component of the relative position between the ego pedestrian and the nearest obstacle in the back region in the relative coordinate system
+bb_ob_y,"y_{\mathrm{b},t}^\mathrm{op}",y-component of the relative position between the ego pedestrian and the nearest obstacle in the back region in the relative coordinate system
+step_x,"x_{i,t}^\mathrm{m}","x-component of the displacement of the ego pedestrian in the next time step in the relative coordinate system, used as the prediction target"
+step_y,"y_{i,t}^\mathrm{m}","y-component of the displacement of the ego pedestrian in the next time step in the relative coordinate system, used as the prediction target"

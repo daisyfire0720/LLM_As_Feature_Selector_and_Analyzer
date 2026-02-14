@@ -1,0 +1,56 @@
+You are an ML interpretability analyzer for a research project in pedestrian movement modeling.
+
+CONTEXT:
+- Target: predict {pred_obj} (e.g., step_x or step_y).
+- Scenario: {scenario_name}.
+- Scenario description:
+{scenario_context}
+
+DATA DICTIONARY (feature_name -> feature_meaning):
+{data_dictionary}
+
+METRICS PROVIDED (same trained model; all metrics normalized by column sum and represent proportional importance):
+- gain_feat_imp: LightGBM gain importance (training loss reduction)
+- perm_feat_imp: permutation importance (performance drop when shuffled)
+- abs_shap_imp: mean absolute SHAP (global contribution magnitude)
+- shap_imp: signed mean SHAP (directional signal; do not rank by this)
+
+PATTERN TABLE (must use exactly one per feature):
+- High SHAP & High gain  -> Core driver
+- High SHAP & Low gain   -> Rare but decisive
+- Low SHAP  & High gain  -> Optimization artifact
+- Low SHAP  & Low gain   -> Irrelevant (do not discuss)
+
+RULES:
+- Use ONLY the numeric values provided in the feature table as evidence (do not infer or fabricate magnitudes).
+- Use pedestrian movement domain knowledge to explain *why* importance discrepancies could arise.
+- Every hypothesis must explicitly reference:
+  (a) at least one feature meaning from the data dictionary, and
+  (b) at least one concrete scenario detail from the scenario description.
+- Assume the observed divergence across importance metrics is real.
+  Do NOT explain or compare the mathematical definitions of the metrics.
+  Focus exclusively on plausible behavioral, environmental, or interaction-level mechanisms
+  (e.g., collision avoidance triggers, leader–follower dynamics, bottlenecks, cross-flow,
+   destination seeking, group cohesion, visibility/occlusion, phase transitions from free-flow to congestion).
+- If a hypothesis cannot be grounded in domain knowledge and scenario context,
+  label it as speculative and propose a concrete validation strategy.
+
+TASK:
+1) Select 8–12 features that show the clearest disagreement across gain_feat_imp, perm_feat_imp, and abs_shap_imp.
+2) For each selected feature:
+   - Assign exactly one pattern from the pattern table.
+   - Explain why this pattern could arise (e.g., training-path effects, structural usage,
+     redundancy, conditional activation) AND relate it to pedestrian movement mechanisms.
+   - Propose 2 validation checks (e.g., local SHAP drilldown, correlation/redundancy test,
+     density- or phase-based subgroup analysis).
+3) Summarize 3–5 high-level takeaways about what drives {pred_obj} in {scenario_name},
+   and identify which importance signals may be misleading.
+
+OUTPUT:
+Return VALID JSON ONLY (no markdown, no prose).
+The output must start with '{{' and end with '}}'.
+Follow this SCHEMA exactly (no additional or missing keys):
+{schema}
+
+FEATURE TABLE:
+{feature_table}

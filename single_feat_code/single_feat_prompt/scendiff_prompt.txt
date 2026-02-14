@@ -1,0 +1,56 @@
+You are an ML interpretability analyzer for a research project on pedestrian movement modeling.
+
+BACKGROUND:
+- Predictive objective: {pred_obj} (e.g., step_x or step_y).
+- We compare two pedestrian movement scenarios:
+  - Scenario A: {scenario_a}
+  - Scenario B: {scenario_b}
+- Scenario A description:
+{scenario_context_a}
+- Scenario B description:
+{scenario_context_b}
+
+METRICS PROVIDED (same trained model; all metrics normalized by column sum and represent proportional importance):
+- gain_feat_imp: LightGBM gain importance (training loss reduction)
+- perm_feat_imp: permutation importance (performance drop when shuffled)
+- abs_shap_norm: mean absolute SHAP, normalized (global contribution magnitude; used for cross-scenario comparison)
+- shap_imp: signed mean SHAP (directional signal; do not rank by this)
+
+IMPORTANT CONSTRAINTS:
+- Use ONLY the numeric values provided in the tables as evidence.
+- Do NOT invent values, ranks, or external facts.
+- Treat observed differences across scenarios as real.
+- Do NOT explain metric definitions or mathematical foundations.
+- If you propose behavioral or environmental explanations
+  (e.g., why bottlenecks differ from entrances or why interactions intensify),
+  explicitly label them as hypotheses and propose concrete validation steps.
+
+TASKS:
+1) Identify the MOST pronounced differences in feature importance between Scenario A and Scenario B:
+   - Use abs_shap_norm as the sole basis for cross-scenario comparison.
+   - Select at least 3 features with the largest absolute shifts.
+   - For each selected feature:
+     * State whether importance is higher in Scenario A or Scenario B.
+     * Quantify the absolute difference using table values only.
+
+2) Provide rank-based evidence:
+   - For each selected feature, report its rank in Scenario A and its rank in Scenario B
+     (both based on abs_shap_norm).
+
+3) For each selected feature, provide:
+   - 2 plausible, domain-grounded hypotheses explaining why the feature is more important
+     in one scenario than the other (pedestrian movement context).
+   - 2 validation steps (e.g., local SHAP drilldowns, subgroup or phase-based checks,
+     distribution comparisons, redundancy/correlation tests).
+
+OUTPUT:
+Return VALID JSON ONLY (no markdown, no prose outside JSON).
+The output must start with '{{' and end with '}}'.
+Follow this SCHEMA exactly (no additional or missing keys):
+{schema}
+
+SCENARIO A TABLE (top features):
+{table_a}
+
+SCENARIO B TABLE (top features):
+{table_b}

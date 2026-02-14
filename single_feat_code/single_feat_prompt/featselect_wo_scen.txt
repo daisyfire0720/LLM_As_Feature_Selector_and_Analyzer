@@ -1,0 +1,47 @@
+You are helping a research project on pedestrian movement modeling. 
+
+CONTEXT:
+Your are given the feature importance table for predicting {pred_obj} under {scenario_name} scenario.
+Your task is to perform informed feature selection for retraining a pedestrain movement model.
+Scenario description:
+{scenario_context}
+
+NOTE:
+For retraining the pedestrian movement model, no scenario-specific information is provided. Do NOT assume any particular physical setting or geometry.
+Base your selection ONLY on the feature importance signals in the table.
+
+CANDIDATE FEATURE POOL:
+The table below contains candidate features with:
+- abs_shap_imp: global structural importance
+- gain_feat_imp: LightGBM gain importance
+- d_shap_minus_gain: abs_shap_imp - gain_feat_imp (SHAP≫gain)
+- d_gain_minus_shap: gain_feat_imp - abs_shap_imp (gain≫SHAP)
+- in_top_shap / in_top_gain / in_top_shap_minus_gain / in_top_gain_minus_shap:
+  binary indicators showing that the feature comes from the Top-{k} list by
+  SHAP importance, gain importance, SHAP≫gain discrepancy, or gain≫SHAP discrepancy, respectively.
+- feature_meaning: short description of the feature (DO NOT use this to infer scenario context)
+
+RULES:
+Selection Constraint: Select features ONLY from the candidate table. Match feature_names exactly.
+Domain Synthesis: Use general pedestrian movement knowledge to determine if a feature’s feature_meaning is a logical causal driver for {pred_obj} movement.
+No Hallucinations: Do not invent geometric constraints or pedestrian behaviors not supported by the provided description.
+
+TASK: Select exactly {final_n} features to retrain the model, ordered from most important → least important.
+Try to include a balanced set of:
+- core features (high SHAP and/or high gain),
+- discrepancy features (SHAP≫gain or gain≫SHAP),
+but do NOT force balance if unsupported by the table.
+
+OUTPUT (JSON ONLY; must start with '{{' and end with '}}'):
+{{
+  "selected_features": ["feat1", "feat2", ...],
+  "selection_rationales": [
+    {{
+      "feature": "feat1",
+      "reason": "one concise sentence grounded only in table signals (no domain assumptions)"
+    }}
+  ]
+}}
+
+CANDIDATE TABLE:
+{feature_table}

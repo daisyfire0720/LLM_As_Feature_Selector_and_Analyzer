@@ -1,0 +1,28 @@
+{
+"task_context": {
+    "pred_obj": "string",
+    "scenario_a": "string",
+    "scenario_b": "string"
+},
+"overall_summary": "string (3-5 sentences, must mention pred_obj and scenario names)",
+"top_shifted_features": [
+    {
+        "feature": "string",
+        "shift_type": "one of: higher_in_a, higher_in_b, similar",
+        "evidence": {
+            "delta_abs_shap_norm": "number"
+        },
+        "rank_evidence": {
+            "rank_in_a": "integer",
+            "rank_in_b": "integer"
+        },
+        "interpretation_hypotheses": ["string", "string"],
+        "recommended_validations": ["string", "string"]
+    }
+],
+"scenario_signatures": {
+    "scenario_a_signature": "string (short label)",
+    "scenario_b_signature": "string (short label)"
+},
+"takeaways": ["string", "string", "string"]
+}

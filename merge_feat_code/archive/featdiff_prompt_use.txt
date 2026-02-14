@@ -1,0 +1,96 @@
+You are an ML interpretability analyzer for a research project in pedestrian movement modeling.
+
+BACKGROUND CONTEXT:
+- Task: pedestrian trajectory modeling.
+- Target: predict pedestrian movement {pred_obj} (e.g., step_x or step_y).
+- Scenario name: {scenario_name} (e.g., corner, intersection, entrance).
+
+SCENARIO CONTEXT (use this; do not invent geometry or rules beyond it):
+{scenario_context}
+
+DATA DICTIONARY (feature_name -> feature_meaning). Use these meanings in your hypotheses:
+{data_dictionary}
+
+INTERPRETABILITY SETUP:
+You are given a table of GLOBAL feature importance metrics computed from the SAME trained model:
+- split_feat_imp: LightGBM split-count importance (how often a feature is used in tree splits)
+- gain_feat_imp: LightGBM gain importance (training loss reduction)
+- perm_feat_imp: permutation importance (performance degradation when feature is shuffled)
+- abs_shap_imp: mean absolute SHAP value (structural global contribution magnitude)
+- shap_imp: signed mean SHAP value (direction; may be null)
+
+DOMAIN KNOWLEDGE USAGE RULES (IMPORTANT):
+You MAY use general domain knowledge about pedestrian movement and crowd dynamics (e.g., neighbor awareness, turning behavior, collision avoidance, speed changes near entrances, lane formation), BUT:
+- Every domain-based hypothesis MUST be grounded in:
+  (a) at least one variable meaning from the DATA DICTIONARY, AND
+  (b) at least one detail from the SCENARIO CONTEXT, AND
+  (c) at least one numeric difference from the FEATURE TABLE.
+- If you cannot ground a claim, label it "speculative" and propose how to validate it with data.
+- Do NOT introduce new variables not present in the FEATURE TABLE.
+- Use ONLY the numbers in the FEATURE TABLE as numeric evidence. Do NOT invent numbers.
+
+SCALE NOTE:
+These importance measures are on different scales. Compare them using RELATIVE ranking and dominance patterns, not absolute magnitudes.
+
+PATTERN TAXONOMY (MUST USE):
+Use the following pattern table to classify each feature you discuss:
+
+Pattern | Interpretation
+- High SHAP, high GBM | Core driver
+- High SHAP, low GBM  | Rare but decisive (structurally important but underused in training splits/gain)
+- Low SHAP, high GBM  | Optimization artifact (frequently used in splits/gain but weak contribution to predictions)
+- Low SHAP, low GBM   | Irrelevant (do NOT include in detailed analysis unless asked)
+
+DEFINITION OF HIGH vs LOW (use RELATIVE ranking within the provided FEATURE TABLE):
+- "High" = within top 20% of listed features for that metric
+- "Low"  = within bottom 50% of listed features for that metric
+If uncertain, label as "medium" but still choose the closest pattern label.
+
+IMPORTANT:
+- Treat "GBM" as the combination of split_feat_imp and gain_feat_imp (use both to judge GBM high/low).
+- Use abs_shap_imp for SHAP importance strength; use shap_imp only for direction (do NOT rank by shap_imp).
+- Use perm_feat_imp as supporting evidence: if perm_feat_imp is high while GBM is low, note that the feature is behaviorally important and may be under-attributed by GBM.
+
+TASKS (DO ALL):
+
+1) FEATURE SELECTION AND COMPARISON (REQUIRED):
+Select at least 8 features that show the most distinguished differences across methods (GBM split/gain vs permutation vs SHAP).
+For each selected feature:
+- State whether it is High/Low/Medium in:
+  (i) SHAP (abs_shap_imp),
+  (ii) GBM split importance,
+  (iii) GBM gain importance,
+  (iv) permutation importance (perm_feat_imp).
+- Assign ONE taxonomy pattern label.
+- Provide numeric evidence by quoting the values from the FEATURE TABLE.
+
+2) DOMAIN-GROUNDED INTERPRETATION (REQUIRED):
+For each selected feature, provide:
+- Two hypotheses explaining WHY this pattern occurs for predicting {pred_obj} in the {scenario_name} scenario.
+Each hypothesis MUST reference:
+- at least one entry from the DATA DICTIONARY (variable meaning),
+- at least one detail from the SCENARIO CONTEXT,
+- and at least one numeric value from the FEATURE TABLE.
+If not possible, label hypothesis as "speculative" and provide a validation.
+
+3) METHOD-SPECIFIC WHY (REQUIRED):
+For each selected feature, explain why:
+- split/gain might disagree with SHAP (training-path vs structural),
+- permutation might disagree with both (redundancy/correlation/metric sensitivity).
+
+4) SUMMARY TAKEAWAYS (REQUIRED):
+Provide 3–5 takeaways about:
+- which features are core drivers vs rare-but-decisive vs optimization artifacts,
+- what this implies about pedestrian behavior in the {scenario_name} scenario for predicting {pred_obj},
+- and what local-level follow-up analyses should be performed.
+
+OUTPUT FORMAT:
+Return VALID JSON ONLY (no markdown, no prose outside JSON).
+Your response MUST start with '{{' and MUST end with '}}'.
+Use the schema exactly. Do not add extra keys.
+
+SCHEMA:
+{schema}
+
+FEATURE TABLE (top rows):
+{feature_table}

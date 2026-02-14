@@ -1,0 +1,65 @@
+{
+  "task_context": {
+    "pred_obj": "string",
+    "scenario_name": "string"
+  },
+  "pattern_taxonomy": [
+    {"pattern": "high_shap_high_gbm", "interpretation": "Core driver"},
+    {"pattern": "high_shap_low_gbm", "interpretation": "Rare but decisive"},
+    {"pattern": "low_shap_high_gbm", "interpretation": "Optimization artifact"},
+    {"pattern": "low_shap_low_gbm", "interpretation": "Irrelevant"}
+  ],
+  "overall_summary": "string (2-4 sentences, must mention pred_obj and scenario_name)",
+  "selected_features_analysis": [
+    {
+      "feature": "string",
+      "relative_levels": {
+        "shap_abs_level": "high|medium|low",
+        "gbm_split_level": "high|medium|low",
+        "gbm_gain_level": "high|medium|low",
+        "perm_level": "high|medium|low"
+      },
+      "pattern": "one of: high_shap_high_gbm, high_shap_low_gbm, low_shap_high_gbm, low_shap_low_gbm",
+      "evidence": {
+        "split_feat_imp": "number or null",
+        "gain_feat_imp": "number or null",
+        "perm_feat_imp": "number or null",
+        "abs_shap_imp": "number or null",
+        "shap_imp": "number or null"
+      },
+      "cross_method_comparison": {
+        "who_ranks_high": ["string (subset of: split,gain,perm,shap_abs)"],
+        "who_ranks_low": ["string (subset of: split,gain,perm,shap_abs)"],
+        "notes": "string (1-2 sentences; must be grounded in evidence)"
+      },
+      "domain_grounded_hypotheses": [
+        {
+          "hypothesis": "string",
+          "grounding": {
+            "dictionary_terms_used": ["string"],
+            "scenario_context_used": ["string"],
+            "numeric_evidence_used": ["string (e.g., 'abs_shap_imp=0.123, gain_feat_imp=5.6')"]
+          },
+          "speculative": "boolean",
+          "validation_steps": ["string", "string"]
+        },
+        {
+          "hypothesis": "string",
+          "grounding": {
+            "dictionary_terms_used": ["string"],
+            "scenario_context_used": ["string"],
+            "numeric_evidence_used": ["string"]
+          },
+          "speculative": "boolean",
+          "validation_steps": ["string", "string"]
+        }
+      ],
+      "method_specific_why": {
+        "why_shap_vs_gbm": ["string", "string"],
+        "why_perm_differs": ["string", "string"]
+      },
+      "recommended_next_local_drilldowns": ["string", "string"]
+    }
+  ],
+  "takeaways": ["string", "string", "string", "string"]
+}

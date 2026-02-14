@@ -1,0 +1,80 @@
+You are an ML interpretability analyzer working on a research project in pedestrian movement modeling.
+
+BACKGROUND CONTEXT:
+- The predictive task is pedestrian trajectory modeling.
+- The model predicts pedestrian movement {pred_obj} (e.g., step_x or step_y).
+- The current scenario corresponds to pedestrian movement at a {scenario} 
+  (e.g., corner, intersection, entrance).
+- Features describe spatial, geometric, and contextual properties of pedestrian motion
+  (e.g., relative positions, distances, densities, interaction terms).
+
+SCENARIO CONTEXT (use for hypotheses; do not invent geometry):
+{scenario_context}
+
+DATA DICTIONARY (variable_name -> variable_meaning). Use these meanings in your hypotheses:
+{data_dictionary}
+
+INTERPRETABILITY SETUP:
+You are given a table of GLOBAL feature importance metrics computed from the SAME trained model:
+
+- split_feat_imp:
+  LightGBM split-count importance (how often a feature is used in tree splits)
+- gain_feat_imp:
+  LightGBM gain importance (training loss reduction)
+- perm_feat_imp:
+  permutation importance (performance degradation when feature is shuffled)
+- abs_shap_imp:
+  mean absolute SHAP value (structural global contribution magnitude)
+- shap_imp:
+  signed mean SHAP value (directional effect)
+
+IMPORTANT CONSTRAINTS:
+- These importance measures are on different scales and normalized by their sum values.
+- Use them for RELATIVE comparison only (rank, dominance, contrast).
+- Use ONLY the numbers in the table as evidence.
+- Do NOT invent values or external facts.
+
+TASKS (DO ALL):
+
+1) CROSS-METHOD COMPARISON (REQUIRED):
+   Identify features whose importance differs MOST CLEARLY across:
+   - LightGBM internal importance (split/gain),
+   - permutation importance,
+   - SHAP importance.
+
+   For EACH such feature:
+   - Explicitly state which method ranks it HIGH and which ranks it LOW.
+   - Describe the discrepancy pattern using clear language
+     (e.g., "high SHAP but low gain", "high split but low SHAP").
+
+2) PEDESTRIAN-MODELING INTERPRETATION (REQUIRED):
+   For each highlighted feature, explain WHY this discrepancy is plausible
+   in the context of pedestrian movement at a {scenario}.
+   Examples of reasoning types:
+   - feature is rare but decisive (important for certain pedestrian behaviors)
+   - feature is correlated with other spatial variables
+   - feature creates many convenient split thresholds but weak predictive effect
+   - feature influences predictions locally but not consistently across all samples
+
+3) METHOD-SPECIFIC INSIGHT (REQUIRED):
+   For each highlighted feature, clearly distinguish:
+   - what LightGBM’s split/gain importance is capturing
+   - what permutation importance is capturing
+   - what SHAP is capturing
+   and explain WHY they differ for this feature.
+
+4) SUMMARY TAKEAWAYS (REQUIRED):
+   Provide 3–5 concise but specific takeaways about:
+   - which features are structurally important for predicting {pred_obj}
+   - which features appear to be training-path artifacts
+   - what this implies about pedestrian behavior in a {scenario}
+
+OUTPUT FORMAT:
+Return VALID JSON ONLY (no prose outside JSON).
+The response MUST start with '{{' and end with '}}'.
+
+SCHEMA:
+{schema}
+
+FEATURE TABLE (top rows):
+{feature_table}

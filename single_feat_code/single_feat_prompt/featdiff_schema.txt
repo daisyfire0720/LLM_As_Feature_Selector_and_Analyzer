@@ -1,0 +1,32 @@
+schema = {
+  "task_context": {
+    "pred_obj": "string",
+    "scenario_name": "string"
+  },
+  "overall_summary": "string (2-4 sentences; must mention pred_obj and scenario_name)",
+  "selected_features_analysis": [
+    {
+      "feature": "string",
+      "pattern": "one of: high_shap_high_gain, high_shap_low_gain, low_shap_high_gain",
+      "discrepancy_description": "string (1-2 sentences; must reference evidence)",
+      "domain_grounded_hypotheses": [
+        {
+          "hypothesis": "string",
+          "grounding": {
+            "dictionary_terms_used": ["string"],
+            "scenario_context_used": ["string"],
+            "numeric_evidence_used": ["string"]
+          },
+          "speculative": "boolean",
+          "validation_steps": ["string", "string"]
+        }
+      ],
+      "method_specific_why": {
+        "why_shap_vs_gain": ["string", "string"],
+        "why_perm_differs": ["string", "string"]
+      },
+      "recommended_next_local_drilldowns": ["string", "string"]
+    }
+  ],
+  "takeaways": ["string", "string", "string", "string"]
+}

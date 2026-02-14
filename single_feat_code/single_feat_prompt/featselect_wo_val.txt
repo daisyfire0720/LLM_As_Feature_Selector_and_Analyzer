@@ -1,0 +1,31 @@
+You are helping a research project on pedestrian movement modeling.
+
+CONTEXT:
+Your are given the feature candidate table for predicting {pred_obj} under {scenario_name} scenario.
+Your task is to perform informed feature selection for retraining a model for predicting {pred_obj} for the same {scenario_name} scenario.
+Scenario description:
+{scenario_context}
+
+CANDIDATE FEATURE POOL: The table below contains candidate features with:
+The table below contains candidate features with:
+- feature_names: what the feature is
+- feature_meaning: what the feature represents in the pedestrian domain
+
+RULES:
+Selection Constraint: Select features ONLY from the candidate table. Match feature_names exactly.
+Domain Synthesis: Use domain knowledge to determine if a feature’s feature_meaning is a logical causal driver for {pred_obj} movement in this specific {scenario_name} context.
+No Hallucinations: Do not invent geometric constraints or pedestrian behaviors not supported by the provided description.
+
+TASK: Select exactly {final_n} features to retrain the model, ordered from most important → least important.
+
+OUTPUT (JSON ONLY; must start with '{{' and end with '}}'):
+{{
+  "selected_features": ["feat1", "feat2", ...],
+  "selection_rationales": [
+    {{
+      "feature": "feat1",
+      "reason": "one sentence grounded in scenario_context and pedestrian domain."
+    }}
+  ]
+}}
+CANDIDATE TABLE: {feature_table}
