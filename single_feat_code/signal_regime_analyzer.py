@@ -61,6 +61,7 @@ class SignalRegimeAnalyzer:
 
         p = params.copy()
         p["verbosity"] = -1
+        p["device"] = "gpu"
 
         model = lgb.train(
             params=p,
@@ -434,7 +435,7 @@ class SignalRegimeAnalyzer:
                 plt.tight_layout()
                 plt.savefig(save_path, dpi=400)
 
-                plt.show()
+            plt.show()
 
 #%% run code
 if __name__ == "__main__":
@@ -444,10 +445,10 @@ if __name__ == "__main__":
         feat_path="../output_single_featimp/",
         flow_type="corner",
         pred_objs=["step_x", "step_y"],
-        base_top=5,
-        comp_top=10,
-        base_col="top_shap",
-        n_splits=2,
+        base_top = 5,
+        comp_top = 10,
+        base_col = "top_shap",
+        n_splits = 2,
     )
     mean_curve_df, delta_rmse_summary = srt.export_all_to_excel(max_add=5)
     srt.plot_mean_incremental_curve(mean_curve_df, metric = 'rmse')
