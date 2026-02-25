@@ -6,6 +6,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import lightgbm as lgb
 
 from dataclasses import dataclass
@@ -26,7 +27,7 @@ class SelectionMechanismAnalyzer:
     model_path: str
     feat_path: str
     flow_type: str
-    pred_obj: str
+    pred_objs: List[str]
     base_top: int
     comp_top: int
     base_col: str
@@ -43,16 +44,37 @@ class SelectionMechanismAnalyzer:
 
     def __post_init__(self):
         self.file_name = f"ds_vector_{self.flow_type}.csv"
-        self.param_name = f"{self.flow_type}_{self.pred_obj}_lgb_param.joblib"
-        self.base_top_name = f"{self.flow_type}_{self.pred_obj}_candidate_features_top{self.base_top}.csv"
-        self.comp_top_name = f"{self.flow_type}_{self.pred_obj}_candidate_features_top{self.comp_top}.csv"
+        self.base_top_name_tpl = f"{self.flow_type}" + "_{pred_obj}_candidate_features_top" + str(self.base_top) + ".csv"
+        self.comp_top_name_tpl = f"{self.flow_type}" + "_{pred_obj}_candidate_features_top" + str(self.comp_top) + ".csv"
 
         if isinstance(self.comp_cols, str):
             self.comp_cols = [self.comp_cols]
+        if isinstance(self.pred_objs, str):
+            self.pred_objs = [self.pred_objs]
         if self.noise_sigmas is None:
             self.noise_sigmas = [0.0, 0.1, 0.2]
         if self.train_fracs is None:
             self.train_fracs = [1.0, 0.7, 0.4]
+        
+        # Color palette for consistent visualization
+        self.method_colors = {
+            "top_shap": "#FF8C00",              # orange
+            "llm_selection": "#2CA02C",        # green
+            "fused_importance": "#1F77B4",     # blue
+        }
+    
+    def _normalize_method_name(self, method: str) -> str:
+        """Normalize method names for consistent display.
+        Converts any llm_selection_* variant to just 'llm_selection'.
+        """
+        if "llm_selection" in method:
+            return "llm_selection"
+        return method
+    
+    def _get_method_color(self, method: str) -> str:
+        """Get color for a given method, using normalized name."""
+        normalized = self._normalize_method_name(method)
+        return self.method_colors.get(normalized, "#000000")  # default to black if not found
     
     # -------------------- shared IO --------------------
     def _load_data_full(self) -> pd.DataFrame:
@@ -60,13 +82,14 @@ class SelectionMechanismAnalyzer:
         df = df.drop(columns=["id", "time"], errors="ignore")
         return df
 
-    def _get_Xy(self, df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series]:
-        y = df[self.pred_obj]
+    def _get_Xy(self, df: pd.DataFrame, pred_obj: str) -> Tuple[pd.DataFrame, pd.Series]:
+        y = df[pred_obj]
         X = df.drop(columns=["step_x", "step_y"], errors="ignore")
         return X, y
 
-    def _load_params(self) -> dict:
-        params = joblib.load(os.path.join(self.model_path, self.param_name))
+    def _load_params(self, pred_obj: str) -> dict:
+        param_name = f"{self.flow_type}_{pred_obj}_lgb_param.joblib"
+        params = joblib.load(os.path.join(self.model_path, param_name))
         if not isinstance(params, dict):
             raise ValueError("Loaded parameters are not in dictionary format.")
         return params
@@ -108,13 +131,15 @@ class SelectionMechanismAnalyzer:
         return {"rmse": rmse, "r2": r2, "best_iteration": int(model.best_iteration)}
 
     # -------------------- feature list extraction (your baseline logic) --------------------
-    def _ordered_features_from_table(self) -> Tuple[List[str], Dict[str, List[str]]]:
+    def _ordered_features_from_table(self, pred_obj: str) -> Tuple[List[str], Dict[str, List[str]]]:
         """
         baseline = top{base_top} from base_col (common features)
         For each method col, build add_list = features in top{comp_top} of that col but not in baseline.
         """
-        df_base = pd.read_csv(os.path.join(self.feat_path, self.base_top_name))
-        df_comp = pd.read_csv(os.path.join(self.feat_path, self.comp_top_name))
+        base_top_name = self.base_top_name_tpl.format(pred_obj=pred_obj)
+        comp_top_name = self.comp_top_name_tpl.format(pred_obj=pred_obj)
+        df_base = pd.read_csv(os.path.join(self.feat_path, base_top_name))
+        df_comp = pd.read_csv(os.path.join(self.feat_path, comp_top_name))
 
         baseline = df_base[self.base_col].dropna().tolist()
 
@@ -155,23 +180,24 @@ class SelectionMechanismAnalyzer:
         rows = []
         d = curve_df.copy()
 
-        # choose terminal point per method as "effective snr"
-        for method in sorted(d["method"].unique()):
-            dm = d[d["method"] == method]
-            # aggregate mean curve
-            agg = dm.groupby("n_features").agg(r2_mean=("r2", "mean"), r2_std=("r2", "std")).reset_index()
-            agg = agg.sort_values("n_features")
-            last = agg.iloc[-1]
-            r2m = float(last["r2_mean"])
-            snr = float(r2m / (1 - r2m)) if r2m < 1 else np.inf
-            rows.append({
-                "target": self.pred_obj,
-                "method": method,
-                "terminal_n_features": int(last["n_features"]),
-                "cv_r2_mean": r2m,
-                "cv_r2_std": float(last["r2_std"]) if not np.isnan(last["r2_std"]) else 0.0,
-                "effective_snr_r2_over_1_minus_r2": snr,
-            })
+        # choose terminal point per method and target as "effective snr"
+        for target in sorted(d["target"].unique()):
+            for method in sorted(d[d["target"] == target]["method"].unique()):
+                dm = d[(d["target"] == target) & (d["method"] == method)]
+                # aggregate mean curve
+                agg = dm.groupby("n_features").agg(r2_mean=("r2", "mean"), r2_std=("r2", "std")).reset_index()
+                agg = agg.sort_values("n_features")
+                last = agg.iloc[-1]
+                r2m = float(last["r2_mean"])
+                snr = float(r2m / (1 - r2m)) if r2m < 1 else np.inf
+                rows.append({
+                    "target": target,
+                    "method": method,
+                    "terminal_n_features": int(last["n_features"]),
+                    "cv_r2_mean": r2m,
+                    "cv_r2_std": float(last["r2_std"]) if not np.isnan(last["r2_std"]) else 0.0,
+                    "effective_snr_r2_over_1_minus_r2": snr,
+                })
 
         return pd.DataFrame(rows)
 
@@ -179,31 +205,33 @@ class SelectionMechanismAnalyzer:
     def ranking_agreement_table(self) -> pd.DataFrame:
         """
         Computes Kendall tau between the ORDERINGS in the top{comp_top} table:
-        - base_col vs each comp_col
+        - base_col vs each comp_col (for each target)
         """
-        df = pd.read_csv(os.path.join(self.feat_path, self.comp_top_name))
-        if self.base_col not in df.columns:
-            raise ValueError(f"base_col '{self.base_col}' not found in {self.comp_top_name}")
-
-        base_rank = df[self.base_col].dropna().tolist()
-        base_pos = {f: i for i, f in enumerate(base_rank)}
-
         rows = []
-        for col in self.comp_cols:
-            if col not in df.columns:
-                continue
-            other = df[col].dropna().tolist()
-            # align to intersection so kendall makes sense
-            aligned = [base_pos[f] for f in other if f in base_pos]
-            tau = kendalltau(range(len(aligned)), aligned).statistic if len(aligned) >= 2 else np.nan
+        for pred_obj in self.pred_objs:
+            comp_top_name = self.comp_top_name_tpl.format(pred_obj=pred_obj)
+            df = pd.read_csv(os.path.join(self.feat_path, comp_top_name))
+            if self.base_col not in df.columns:
+                raise ValueError(f"base_col '{self.base_col}' not found in {comp_top_name}")
 
-            rows.append({
-                "target": self.pred_obj,
-                "base_method": self.base_col,
-                "comp_method": col,
-                "kendall_tau": float(tau) if tau is not None else np.nan,
-                "n_intersection": int(len(aligned)),
-            })
+            base_rank = df[self.base_col].dropna().tolist()
+            base_pos = {f: i for i, f in enumerate(base_rank)}
+
+            for col in self.comp_cols:
+                if col not in df.columns:
+                    continue
+                other = df[col].dropna().tolist()
+                # align to intersection so kendall makes sense
+                aligned = [base_pos[f] for f in other if f in base_pos]
+                tau = kendalltau(range(len(aligned)), aligned).statistic if len(aligned) >= 2 else np.nan
+
+                rows.append({
+                    "target": pred_obj,
+                    "base_method": self.base_col,
+                    "comp_method": col,
+                    "kendall_tau": float(tau) if tau is not None else np.nan,
+                    "n_intersection": int(len(aligned)),
+                })
 
         return pd.DataFrame(rows)
 
@@ -217,42 +245,45 @@ class SelectionMechanismAnalyzer:
             target | method | fold | k_added | n_features | rmse | r2
         """
         df = self._load_data_full()
-        X, y = self._get_Xy(df)
-        params = self._load_params()
 
-        baseline, add_dict = self._ordered_features_from_table()
         need = self.comp_top - self.base_top
-
-        # if max_add not specified: use the shortest add list (for comparability)
-        if max_add is None:
-            max_add = min(len(v) for v in add_dict.values())
-
         kf = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
-        splits = list(kf.split(X))
 
         rows = []
-        for method, add_list in tqdm(add_dict.items(), desc="Methods (CV incremental)"):
-            add_list = add_list[:max_add]  # keep comparable length
-            add_list = add_list[:need]  # also cap by comp_top - base_top to match table limits
+        for pred_obj in tqdm(self.pred_objs, desc="Targets (CV incremental)"):
+            X, y = self._get_Xy(df, pred_obj)
+            params = self._load_params(pred_obj)
+            baseline, add_dict = self._ordered_features_from_table(pred_obj)
 
-            for fold, (tr, te) in tqdm(list(enumerate(splits, start=1)), desc=f"Folds for {method}", leave=False):
-                X_tr, X_te = X.iloc[tr], X.iloc[te]
-                y_tr, y_te = y.iloc[tr], y.iloc[te]
+            # if max_add not specified: use the shortest add list (for comparability)
+            max_add_use = max_add
+            if max_add_use is None:
+                max_add_use = min(len(v) for v in add_dict.values())
 
-                for k_added, feat_list in tqdm(
-                    list(self._incremental_feature_sets(baseline, add_list, max_add=max_add)),
-                    desc=f"k-add {method} fold {fold}", leave=False
-                ):
-                    m = self._train_eval_lgb(X_tr, y_tr, X_te, y_te, params, feat_list)
-                    rows.append({
-                        "target": self.pred_obj,
-                        "method": method,
-                        "fold": fold,
-                        "k_added": k_added,
-                        "n_features": len(feat_list),
-                        "rmse": m["rmse"],
-                        "r2": m["r2"],
-                    })
+            splits = list(kf.split(X))
+
+            for method, add_list in tqdm(add_dict.items(), desc=f"Methods for {pred_obj}", leave=False):
+                add_list = add_list[:max_add_use]  # keep comparable length
+                add_list = add_list[:need]  # also cap by comp_top - base_top to match table limits
+
+                for fold, (tr, te) in tqdm(list(enumerate(splits, start=1)), desc=f"Folds for {method}", leave=False):
+                    X_tr, X_te = X.iloc[tr], X.iloc[te]
+                    y_tr, y_te = y.iloc[tr], y.iloc[te]
+
+                    for k_added, feat_list in tqdm(
+                        list(self._incremental_feature_sets(baseline, add_list, max_add=max_add_use)),
+                        desc=f"k-add {method} fold {fold}", leave=False
+                    ):
+                        m = self._train_eval_lgb(X_tr, y_tr, X_te, y_te, params, feat_list)
+                        rows.append({
+                            "target": pred_obj,
+                            "method": method,
+                            "fold": fold,
+                            "k_added": k_added,
+                            "n_features": len(feat_list),
+                            "rmse": m["rmse"],
+                            "r2": m["r2"],
+                        })
 
         return pd.DataFrame(rows)
 
@@ -268,18 +299,17 @@ class SelectionMechanismAnalyzer:
         if metric not in ["rmse", "r2"]:
             raise ValueError("metric must be 'rmse' or 'r2'")
 
-        d = curve_df.copy().sort_values(["method", "fold", "n_features"])
-        d[f"delta_{metric}"] = d.groupby(["method", "fold"])[metric].diff()
+        d = curve_df.copy().sort_values(["target", "method", "fold", "n_features"])
+        d[f"delta_{metric}"] = d.groupby(["target", "method", "fold"])[metric].diff()
 
         delta_df = d.dropna(subset=[f"delta_{metric}"]).copy()
 
         delta_summary = (
-            delta_df.groupby(["method", "n_features"])[f"delta_{metric}"]
+            delta_df.groupby(["target", "method", "n_features"])[f"delta_{metric}"]
             .agg(delta_mean="mean", delta_std="std")
             .reset_index()
-            .sort_values(["method", "n_features"])
+            .sort_values(["target", "method", "n_features"])
         )
-        delta_summary.insert(0, "target", self.pred_obj)
 
         return delta_df, delta_summary
 
@@ -297,14 +327,10 @@ class SelectionMechanismAnalyzer:
         Default: LightGBM gain importance as a proxy (fast, no extra deps).
         If include_shap_if_available=True and shap installed, uses SHAP mean(|shap|) ranking.
 
-        Output:
-            bootstrap_id | metric | kendall_tau_vs_first | topk_overlap_vs_first
+        Output per target:
+            target | bootstrap_id | empirical_source | kendall_tau_vs_first | topk_overlap_vs_first
         """
         df = self._load_data_full()
-        X, y = self._get_Xy(df)
-        params = self._load_params()
-
-        rng = np.random.RandomState(self.random_state)
 
         # Try SHAP if enabled
         shap_ok = False
@@ -317,43 +343,48 @@ class SelectionMechanismAnalyzer:
             except Exception:
                 shap_ok = False
 
-        def get_rank(Xb, yb) -> List[str]:
-            booster = self._fit_booster_full(Xb, yb, params)
-            if shap_ok:
-                # TreeExplainer for LGB Booster
-                explainer = shap.TreeExplainer(booster)
-                sv = explainer.shap_values(Xb, check_additivity=False)
-                # sv can be list for multiclass; here regression -> ndarray
-                imp = np.mean(np.abs(sv), axis=0)
-                return list(pd.Series(imp, index=Xb.columns).sort_values(ascending=False).index[:top_k])
-            else:
-                imp = booster.feature_importance(importance_type=self.empirical_importance_type)
-                return list(pd.Series(imp, index=Xb.columns).sort_values(ascending=False).index[:top_k])
-
-        # bootstrap ranks
-        ranks = []
-        for b in tqdm(range(self.bootstrap_B), desc="Bootstrap empirical ranking"):
-            idx = rng.randint(0, len(X), size=len(X))
-            Xb = X.iloc[idx]
-            yb = y.iloc[idx]
-            ranks.append(get_rank(Xb, yb))
-
-        ref = ranks[0]
-        ref_pos = {f: i for i, f in enumerate(ref)}
-
         rows = []
-        for b, rk in enumerate(ranks):
-            inter = [ref_pos[f] for f in rk if f in ref_pos]
-            tau = kendalltau(range(len(inter)), inter).statistic if len(inter) >= 2 else np.nan
-            overlap = len(set(ref) & set(rk)) / float(top_k)
+        for pred_obj in tqdm(self.pred_objs, desc="Targets (bootstrap ranking)"):
+            X, y = self._get_Xy(df, pred_obj)
+            params = self._load_params(pred_obj)
+            rng = np.random.RandomState(self.random_state)
 
-            rows.append({
-                "target": self.pred_obj,
-                "bootstrap_id": b,
-                "empirical_source": ("shap" if shap_ok else f"lgb_{self.empirical_importance_type}"),
-                "kendall_tau_vs_first": float(tau) if tau is not None else np.nan,
-                "topk_overlap_vs_first": float(overlap),
-            })
+            def get_rank(Xb, yb) -> List[str]:
+                booster = self._fit_booster_full(Xb, yb, params)
+                if shap_ok:
+                    # TreeExplainer for LGB Booster
+                    explainer = shap.TreeExplainer(booster)
+                    sv = explainer.shap_values(Xb, check_additivity=False)
+                    # sv can be list for multiclass; here regression -> ndarray
+                    imp = np.mean(np.abs(sv), axis=0)
+                    return list(pd.Series(imp, index=Xb.columns).sort_values(ascending=False).index[:top_k])
+                else:
+                    imp = booster.feature_importance(importance_type=self.empirical_importance_type)
+                    return list(pd.Series(imp, index=Xb.columns).sort_values(ascending=False).index[:top_k])
+
+            # bootstrap ranks
+            ranks = []
+            for b in tqdm(range(self.bootstrap_B), desc=f"Bootstrap for {pred_obj}", leave=False):
+                idx = rng.randint(0, len(X), size=len(X))
+                Xb = X.iloc[idx]
+                yb = y.iloc[idx]
+                ranks.append(get_rank(Xb, yb))
+
+            ref = ranks[0]
+            ref_pos = {f: i for i, f in enumerate(ref)}
+
+            for b, rk in enumerate(ranks):
+                inter = [ref_pos[f] for f in rk if f in ref_pos]
+                tau = kendalltau(range(len(inter)), inter).statistic if len(inter) >= 2 else np.nan
+                overlap = len(set(ref) & set(rk)) / float(top_k)
+
+                rows.append({
+                    "target": pred_obj,
+                    "bootstrap_id": b,
+                    "empirical_source": ("shap" if shap_ok else f"lgb_{self.empirical_importance_type}"),
+                    "kendall_tau_vs_first": float(tau) if tau is not None else np.nan,
+                    "topk_overlap_vs_first": float(overlap),
+                })
 
         return pd.DataFrame(rows)
 
@@ -375,21 +406,30 @@ class SelectionMechanismAnalyzer:
             x = d["n_features"].values
             y = d["mean"].values
             s = np.nan_to_num(d["std"].values, nan=0.0)
+            
+            # Use normalized name for label and method color
+            label = self._normalize_method_name(method)
+            color = self._get_method_color(method)
 
-            plt.plot(x, y, marker="o", linewidth=2, label=method)
-            plt.fill_between(x, y - s, y + s, alpha=0.20)
+            plt.plot(x, y, marker="o", linewidth=2, label=label, color=color)
+            plt.fill_between(x, y - s, y + s, alpha=0.20, color=color)
 
-        plt.title(f"{self.flow_type} | {self.pred_obj} | CV Mean {metric} vs n_features (methods)")
+        target = curve_df["target"].iloc[0] if "target" in curve_df.columns else self.pred_objs[0]
+        plt.title(f"{self.flow_type} | {target} | CV Mean {metric} vs n_features (methods)")
         plt.xlabel("n_features")
         plt.ylabel(metric)
         plt.grid(True, alpha=0.3)
         plt.legend()
 
         if save:
-            name = f"{self.flow_type}_{self.pred_obj}_Task2_CVMean_{metric}_Methods.png"
+            target = curve_df["target"].iloc[0] if "target" in curve_df.columns else self.pred_objs[0]
+            name = f"{self.flow_type}_{target}_Task2_CVMean_{metric}_Methods.png"
             path = os.path.join(self.feat_path, name)
             plt.tight_layout()
             plt.savefig(path, dpi=400)
+
+        # force x-axis major ticks every 1
+        plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
 
         plt.show()
 
@@ -401,27 +441,36 @@ class SelectionMechanismAnalyzer:
             x = d["n_features"].values
             y = d["delta_mean"].values
             s = np.nan_to_num(d["delta_std"].values, nan=0.0)
+            
+            # Use normalized name for label and method color
+            label = self._normalize_method_name(method)
+            color = self._get_method_color(method)
 
-            plt.plot(x, y, marker="o", linewidth=2, label=method)
-            plt.fill_between(x, y - s, y + s, alpha=0.20)
+            plt.plot(x, y, marker="o", linewidth=2, label=label, color=color)
+            plt.fill_between(x, y - s, y + s, alpha=0.20, color=color)
 
         plt.axhline(0, linewidth=1, alpha=0.6)
-        plt.title(f"{self.flow_type} | {self.pred_obj} | Δ{metric} (CV mean±std) vs n_features (methods)")
+        target = delta_summary_df["target"].iloc[0] if "target" in delta_summary_df.columns else self.pred_objs[0]
+        plt.title(f"{self.flow_type} | {target} | Δ{metric} (CV mean±std) vs n_features (methods)")
         plt.xlabel("n_features (k)")
         plt.ylabel(f"Δ{metric} = {metric}(k) - {metric}(k-1)")
         plt.grid(True, alpha=0.3)
         plt.legend()
 
         if save:
-            name = f"{self.flow_type}_{self.pred_obj}_Task2_CV_Delta_{metric}_Methods.png"
+            target = delta_summary_df["target"].iloc[0] if "target" in delta_summary_df.columns else self.pred_objs[0]
+            name = f"{self.flow_type}_{target}_Task2_CV_Delta_{metric}_Methods.png"
             path = os.path.join(self.feat_path, name)
             plt.tight_layout()
             plt.savefig(path, dpi=400)
 
+        # force x-axis major ticks every 1
+        plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+
         plt.show()
 
     # ==================== 2.5 Sensitivity tests (noise + downsampling) ====================
-    def sensitivity_curves_cv(self,max_add: Optional[int] = None, mode: str = "noise") -> pd.DataFrame:
+    def sensitivity_curves_cv(self, max_add: Optional[int] = None, mode: str = "noise") -> pd.DataFrame:
         """
         Run incremental curves under controlled perturbations.
 
@@ -439,57 +488,59 @@ class SelectionMechanismAnalyzer:
             raise ValueError("mode must be 'noise' or 'downsample'")
 
         df = self._load_data_full()
-        X, y = self._get_Xy(df)
-        params = self._load_params()
-
-        baseline, add_dict = self._ordered_features_from_table()
-        if max_add is None:
-            max_add = min(len(v) for v in add_dict.values())
-
-        kf = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
-        splits = list(kf.split(X))
 
         rows = []
         perturb_values = self.noise_sigmas if mode == "noise" else self.train_fracs
         perturb_type = "sigma" if mode == "noise" else "train_frac"
 
-        for pv in tqdm(perturb_values, desc=f"Perturbations ({mode})"):
-            for method, add_list in tqdm(add_dict.items(), desc="Methods", leave=False):
-                add_list = add_list[:max_add]
+        for pred_obj in tqdm(self.pred_objs, desc="Targets (sensitivity)"):
+            X, y = self._get_Xy(df, pred_obj)
+            params = self._load_params(pred_obj)
+            baseline, add_dict = self._ordered_features_from_table(pred_obj)
 
-                for fold, (tr, te) in tqdm(list(enumerate(splits, start=1)), desc=f"Folds {method}", leave=False):
-                    X_tr_full, X_te = X.iloc[tr], X.iloc[te]
-                    y_tr_full, y_te = y.iloc[tr], y.iloc[te]
+            if max_add is None:
+                max_add = min(len(v) for v in add_dict.values())
 
-                    # apply perturbation
-                    if mode == "noise":
-                        # make noise reproducible per (pv, fold)
-                        seed = int(self.random_state + fold * 1000 + int(pv * 1e6))
-                        y_tr = self._apply_target_noise(y_tr_full, sigma=float(pv), seed=seed)
-                        y_te_use = self._apply_target_noise(y_te, sigma=float(pv), seed=seed + 1)
-                        X_tr = X_tr_full
-                    else:
-                        # downsample train only
-                        rng = np.random.RandomState(self.random_state + fold * 1000 + int(pv * 100))
-                        n_tr = len(X_tr_full)
-                        keep = rng.choice(n_tr, size=max(5, int(n_tr * float(pv))), replace=False)
-                        X_tr = X_tr_full.iloc[keep]
-                        y_tr = y_tr_full.iloc[keep]
-                        y_te_use = y_te  # unchanged
+            kf = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
+            splits = list(kf.split(X))
 
-                    for k_added, feat_list in self._incremental_feature_sets(baseline, add_list, max_add=max_add):
-                        m = self._train_eval_lgb(X_tr, y_tr, X_te, y_te_use, params, feat_list)
-                        rows.append({
-                            "target": self.pred_obj,
-                            "method": method,
-                            "fold": fold,
-                            "k_added": k_added,
-                            "n_features": len(feat_list),
-                            "rmse": m["rmse"],
-                            "r2": m["r2"],
-                            "perturb_type": perturb_type,
-                            "perturb_value": float(pv),
-                        })
+            for pv in tqdm(perturb_values, desc=f"Perturbations ({mode}) for {pred_obj}", leave=False):
+                for method, add_list in tqdm(add_dict.items(), desc="Methods", leave=False):
+                    add_list = add_list[:max_add]
+
+                    for fold, (tr, te) in tqdm(list(enumerate(splits, start=1)), desc=f"Folds {method}", leave=False):
+                        X_tr_full, X_te = X.iloc[tr], X.iloc[te]
+                        y_tr_full, y_te = y.iloc[tr], y.iloc[te]
+
+                        # apply perturbation
+                        if mode == "noise":
+                            # make noise reproducible per (pv, fold)
+                            seed = int(self.random_state + fold * 1000 + int(pv * 1e6))
+                            y_tr = self._apply_target_noise(y_tr_full, sigma=float(pv), seed=seed)
+                            y_te_use = self._apply_target_noise(y_te, sigma=float(pv), seed=seed + 1)
+                            X_tr = X_tr_full
+                        else:
+                            # downsample train only
+                            rng = np.random.RandomState(self.random_state + fold * 1000 + int(pv * 100))
+                            n_tr = len(X_tr_full)
+                            keep = rng.choice(n_tr, size=max(5, int(n_tr * float(pv))), replace=False)
+                            X_tr = X_tr_full.iloc[keep]
+                            y_tr = y_tr_full.iloc[keep]
+                            y_te_use = y_te  # unchanged
+
+                        for k_added, feat_list in self._incremental_feature_sets(baseline, add_list, max_add=max_add):
+                            m = self._train_eval_lgb(X_tr, y_tr, X_te, y_te_use, params, feat_list)
+                            rows.append({
+                                "target": pred_obj,
+                                "method": method,
+                                "fold": fold,
+                                "k_added": k_added,
+                                "n_features": len(feat_list),
+                                "rmse": m["rmse"],
+                                "r2": m["r2"],
+                                "perturb_type": perturb_type,
+                                "perturb_value": float(pv),
+                            })
 
         return pd.DataFrame(rows)
     
@@ -528,32 +579,39 @@ class SelectionMechanismAnalyzer:
         perturb_type = sens_summary_df["perturb_type"].iloc[0]
         vals = sorted(sens_summary_df["perturb_value"].unique())[:max_panels]
 
-        for pv in vals:
-            d0 = sens_summary_df[sens_summary_df["perturb_value"] == pv].copy()
-            plt.figure(figsize=(10, 6))
+        for target in sorted(sens_summary_df["target"].unique()):
+            for pv in vals:
+                d0 = sens_summary_df[(sens_summary_df["target"] == target) & (sens_summary_df["perturb_value"] == pv)].copy()
+                if d0.empty:
+                    continue
+                plt.figure(figsize=(10, 6))
 
-            for method in sorted(d0["method"].unique()):
-                d = d0[d0["method"] == method].sort_values("n_features")
-                x = d["n_features"].values
-                y = d[mean_col].values
-                s = np.nan_to_num(d[std_col].values, nan=0.0)
+                for method in sorted(d0["method"].unique()):
+                    d = d0[d0["method"] == method].sort_values("n_features")
+                    x = d["n_features"].values
+                    y = d[mean_col].values
+                    s = np.nan_to_num(d[std_col].values, nan=0.0)
+                    
+                    # Use normalized name for label and method color
+                    label = self._normalize_method_name(method)
+                    color = self._get_method_color(method)
 
-                plt.plot(x, y, marker="o", linewidth=2, label=method)
-                plt.fill_between(x, y - s, y + s, alpha=0.20)
+                    plt.plot(x, y, marker="o", linewidth=2, label=label, color=color)
+                    plt.fill_between(x, y - s, y + s, alpha=0.20, color=color)
 
-            plt.title(f"{self.flow_type} | {self.pred_obj} | {metric} vs n_features | {perturb_type}={pv}")
-            plt.xlabel("n_features")
-            plt.ylabel(metric)
-            plt.grid(True, alpha=0.3)
-            plt.legend()
+                plt.title(f"{self.flow_type} | {target} | {metric} vs n_features | {perturb_type}={pv}")
+                plt.xlabel("n_features")
+                plt.ylabel(metric)
+                plt.grid(True, alpha=0.3)
+                plt.legend()
 
-            if save:
-                name = f"{self.flow_type}_{self.pred_obj}_Task2_5_{metric}_{perturb_type}_{pv}.png"
-                path = os.path.join(self.feat_path, name)
-                plt.tight_layout()
-                plt.savefig(path, dpi=400)
+                if save:
+                    name = f"{self.flow_type}_{target}_Task2_5_{metric}_{perturb_type}_{pv}.png"
+                    path = os.path.join(self.feat_path, name)
+                    plt.tight_layout()
+                    plt.savefig(path, dpi=400)
 
-            plt.show()
+                plt.show()
     
     # ==================== Export all Task2 outputs into one Excel ====================
     def export_to_excel(self, out_xlsx_path: str, max_add: Optional[int] = None):
@@ -583,30 +641,29 @@ class SelectionMechanismAnalyzer:
 
         # mean curve table for convenience
         mean_curve_df = (
-            curve_df.groupby(["method", "n_features"])
+            curve_df.groupby(["target", "method", "n_features"])
             .agg(rmse_mean=("rmse", "mean"), rmse_std=("rmse", "std"),
                  r2_mean=("r2", "mean"), r2_std=("r2", "std"))
             .reset_index()
-            .sort_values(["method", "n_features"])
+            .sort_values(["target", "method", "n_features"])
         )
-        mean_curve_df.insert(0, "target", self.pred_obj)
 
         with pd.ExcelWriter(out_xlsx_path, engine="openpyxl") as writer:
-            agree_df.to_excel(writer, sheet_name="2_2_ranking_agreement", index=False)
+            agree_df.to_excel(writer, sheet_name="ranking_agreement", index=False)
             curve_df.to_excel(writer, sheet_name="curves_cv_all", index=False)
             mean_curve_df.to_excel(writer, sheet_name="curves_cv_mean", index=False)
-            eff_snr_df.to_excel(writer, sheet_name="2_1_effective_snr", index=False)
+            eff_snr_df.to_excel(writer, sheet_name="effective_snr", index=False)
 
-            delta_rmse_df.to_excel(writer, sheet_name="2_4_delta_rmse_per_fold", index=False)
-            delta_rmse_summary.to_excel(writer, sheet_name="2_4_delta_rmse_summary", index=False)
-            delta_r2_df.to_excel(writer, sheet_name="2_4_delta_r2_per_fold", index=False)
-            delta_r2_summary.to_excel(writer, sheet_name="2_4_delta_r2_summary", index=False)
+            delta_rmse_df.to_excel(writer, sheet_name="delta_rmse_per_fold", index=False)
+            delta_rmse_summary.to_excel(writer, sheet_name="delta_rmse_summary", index=False)
+            delta_r2_df.to_excel(writer, sheet_name="delta_r2_per_fold", index=False)
+            delta_r2_summary.to_excel(writer, sheet_name="delta_r2_summary", index=False)
 
-            boot_rank_df.to_excel(writer, sheet_name="2_3_bootstrap_rank_stab", index=False)
-            sens_noise_df.to_excel(writer, sheet_name="2_5_noise_curves", index=False)
-            sens_noise_summary.to_excel(writer, sheet_name="2_5_noise_summary", index=False)
-            sens_down_df.to_excel(writer, sheet_name="2_5_down_curves", index=False)
-            sens_down_summary.to_excel(writer, sheet_name="2_5_down_summary", index=False)
+            boot_rank_df.to_excel(writer, sheet_name="bootstrap_rank_stab", index=False)
+            sens_noise_df.to_excel(writer, sheet_name="noise_curves", index=False)
+            sens_noise_summary.to_excel(writer, sheet_name="noise_summary", index=False)
+            sens_down_df.to_excel(writer, sheet_name="down_curves", index=False)
+            sens_down_summary.to_excel(writer, sheet_name="down_summary", index=False)
 
 #%% run code
 if __name__ == "__main__":
@@ -615,22 +672,23 @@ if __name__ == "__main__":
         model_path="../output_full/",
         feat_path="../output_single_featimp/",
         flow_type="corner",
-        pred_obj="step_x",
+        pred_objs=["step_x", "step_y"],
         base_top=5,
-        comp_top=10,
+        comp_top=25,
         base_col="top_shap",
         comp_cols=["llm_selection_wo_val", "fused_importance"],
-        n_splits=3,
-        bootstrap_B=5,
+        n_splits=5,
+        bootstrap_B=10,
         empirical_importance_type="gain",
         include_shap_if_available=False,   # set True only if you installed shap
-        noise_sigmas=[0.0, 0.1, 0.2],
-        train_fracs=[1.0, 0.7, 0.4],
+        noise_sigmas=[0.1, 0.3],
+        train_fracs=[0.7, 0.5],
     )
 
-    # out_xlsx = os.path.join(sm.feat_path, f"SelectionMechanismComp_{sm.flow_type}_{sm.pred_obj}.xlsx")
-    # sm.export_to_excel(out_xlsx, max_add=20)
-    # print(f"Saved: {out_xlsx}")
+    out_xlsx = os.path.join(sm.feat_path, f"SelectionMechanismComp_{sm.flow_type}_all_targets.xlsx")
+    print(out_xlsx)
+    sm.export_to_excel(out_xlsx, max_add=20)
+    print(f"Saved: {out_xlsx}")
 
     # quick plots (optional)
     df_curve = sm.incremental_curves_cv(max_add=20)

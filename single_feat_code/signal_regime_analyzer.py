@@ -12,6 +12,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from scipy.stats import skew, kurtosis
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -33,6 +34,26 @@ class SignalRegimeAnalyzer:
         self.file_name = f"ds_vector_{self.flow_type}.csv"
         self.base_top_name_tpl = f"{self.flow_type}" + "_{pred_obj}_candidate_features_top" + str(self.base_top) + ".csv"
         self.comp_top_name_tpl = f"{self.flow_type}" + "_{pred_obj}_candidate_features_top" + str(self.comp_top) + ".csv"
+        
+        # Color palette for consistent visualization
+        self.method_colors = {
+            "top_shap": "#FF8C00",              # orange
+            "llm_selection": "#2CA02C",        # green
+            "fused_importance": "#1F77B4",     # blue
+        }
+    
+    def _normalize_method_name(self, method: str) -> str:
+        """Normalize method names for consistent display.
+        Converts any llm_selection_* variant to just 'llm_selection'.
+        """
+        if "llm_selection" in method:
+            return "llm_selection"
+        return method
+    
+    def _get_method_color(self, method: str) -> str:
+        """Get color for a given method, using normalized name."""
+        normalized = self._normalize_method_name(method)
+        return self.method_colors.get(normalized, "#000000")  # default to black if not found
     
 # ---------- shared IO ----------
     def _load_data_full(self) -> pd.DataFrame:
@@ -368,6 +389,9 @@ class SignalRegimeAnalyzer:
             plt.grid(True, alpha=0.3)
             plt.legend()
 
+            # force x-axis major ticks every 1
+            plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+
             if save:
                 save_name = f"{self.flow_type}_{t}_CVMean_{metric}_Incremental_{self.base_top}_{self.comp_top}.png"
                 save_path = os.path.join(self.feat_path, save_name)
@@ -428,7 +452,8 @@ class SignalRegimeAnalyzer:
             plt.ylabel(f"Δ{metric} = {metric}(k) - {metric}(k-1)")
             plt.grid(True, alpha=0.3)
             plt.legend()
-
+            # force x-axis major ticks every 1
+            plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
             if save:
                 save_name = f"{self.flow_type}_{t}_CV_Delta_{metric}_MeanStd.png"
                 save_path = os.path.join(self.feat_path, save_name)
@@ -443,14 +468,14 @@ if __name__ == "__main__":
         data_path="../data/",
         model_path="../output_full/",
         feat_path="../output_single_featimp/",
-        flow_type="corner",
+        flow_type="entrance",
         pred_objs=["step_x", "step_y"],
         base_top = 5,
-        comp_top = 10,
+        comp_top = 25,
         base_col = "top_shap",
-        n_splits = 2,
+        n_splits = 5,
     )
-    mean_curve_df, delta_rmse_summary = srt.export_all_to_excel(max_add=5)
+    mean_curve_df, delta_rmse_summary = srt.export_all_to_excel(max_add=20)
     srt.plot_mean_incremental_curve(mean_curve_df, metric = 'rmse')
     srt.plot_delta_k_marginal_from_cv(delta_rmse_summary, metric="rmse")
 

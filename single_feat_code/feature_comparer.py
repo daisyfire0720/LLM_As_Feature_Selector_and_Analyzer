@@ -8,6 +8,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import seaborn as sns
 import lightgbm as lgb
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
@@ -188,6 +189,8 @@ class FlowValidator:
             plt.tight_layout()
             out_png = os.path.join(self.feat_path, f"{self.flow_type}_{self.pred_obj}_{metric}_vs_topn.png")
             plt.savefig(out_png)
+            # force x-axis major ticks every 1
+            plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
             plt.show()
         return res_long
 

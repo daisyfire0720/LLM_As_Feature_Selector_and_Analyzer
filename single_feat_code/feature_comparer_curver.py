@@ -9,6 +9,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import seaborn as sns
 import lightgbm as lgb
 from dataclasses import dataclass
@@ -41,6 +42,26 @@ class PerformanceComparer:
         # Convert comp_col to list if it's a string
         if isinstance(self.comp_col, str):
             self.comp_col = [self.comp_col]
+        
+        # Color palette for consistent visualization
+        self.method_colors = {
+            "top_shap": "#FF8C00",              # orange
+            "llm_selection": "#2CA02C",        # green
+            "fused_importance": "#1F77B4",     # blue
+        }
+    
+    def _normalize_method_name(self, method: str) -> str:
+        """Normalize method names for consistent display.
+        Converts any llm_selection_* variant to just 'llm_selection'.
+        """
+        if "llm_selection" in method:
+            return "llm_selection"
+        return method
+    
+    def _get_method_color(self, method: str) -> str:
+        """Get color for a given method, using normalized name."""
+        normalized = self._normalize_method_name(method)
+        return self.method_colors.get(normalized, "#000000")  # default to black if not found
 
     def _process_data(self):
         df = pd.read_csv(self.data_path + self.file_name)
@@ -142,9 +163,11 @@ class PerformanceComparer:
     def plot_incremental_comparison(self, df_base: pd.DataFrame, df_comps: Dict[str, pd.DataFrame], metric: str = "rmse", 
                                     label_base: Optional[str] = None, label_comps: Optional[Dict[str, str]] = None, x: str = "n_features"):
         if label_base is None:
-            label_base = f"{self.base_col} add"
+            # Use normalized name for base_col
+            label_base = self._normalize_method_name(self.base_col) + " add"
         if label_comps is None:
-            label_comps = {col: f"{col} add" for col in df_comps.keys()}
+            # Use normalized names for comparison columns
+            label_comps = {col: self._normalize_method_name(col) + " add" for col in df_comps.keys()}
         
         # Validate metric and x columns
         if metric not in df_base.columns:
@@ -163,12 +186,16 @@ class PerformanceComparer:
         all_x_values = [dfb[x].min(), dfb[x].max()] + [df[x].min() for df in dfc_dict.values()] + [df[x].max() for df in dfc_dict.values()]
         x_min, x_max = int(min(all_x_values)), int(max(all_x_values))
         
+        # Get color for base_col
+        base_color = self._get_method_color(self.base_col)
+        
         plt.figure(figsize=(10, 6))
-        plt.plot(dfb[x], dfb[metric], marker="o", label=label_base, linewidth=2)
+        plt.plot(dfb[x], dfb[metric], marker="o", label=label_base, linewidth=2, color=base_color)
         
         for col, dfc in dfc_dict.items():
-            label = label_comps.get(col, f"{col} add")
-            plt.plot(dfc[x], dfc[metric], marker="o", label=label, linewidth=2)
+            label = label_comps.get(col, self._normalize_method_name(col) + " add")
+            color = self._get_method_color(col)
+            plt.plot(dfc[x], dfc[metric], marker="o", label=label, linewidth=2, color=color)
         
         title = f"{self.flow_type} | {self.pred_obj} | {metric} vs {x}"
         plt.xticks(range(x_min, x_max + 1))
@@ -181,6 +208,8 @@ class PerformanceComparer:
         save_path = os.path.join(self.feat_path, save_name)
         plt.tight_layout()
         plt.savefig(save_path, dpi=400)
+        # force x-axis major ticks every 1
+        plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
         plt.show()
 
 #%%% run code
