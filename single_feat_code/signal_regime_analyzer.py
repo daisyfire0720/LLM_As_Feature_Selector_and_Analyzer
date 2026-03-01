@@ -391,6 +391,7 @@ class SignalRegimeAnalyzer:
 
             # force x-axis major ticks every 1
             plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+            plt.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%d'))
 
             if save:
                 save_name = f"{self.flow_type}_{t}_CVMean_{metric}_Incremental_{self.base_top}_{self.comp_top}.png"
@@ -454,6 +455,8 @@ class SignalRegimeAnalyzer:
             plt.legend()
             # force x-axis major ticks every 1
             plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+            plt.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%d'))
+            
             if save:
                 save_name = f"{self.flow_type}_{t}_CV_Delta_{metric}_MeanStd.png"
                 save_path = os.path.join(self.feat_path, save_name)

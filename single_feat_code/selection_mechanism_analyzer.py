@@ -1,4 +1,3 @@
-
 #%%% import packages 
 import os
 from fastavro import writer
@@ -201,7 +200,154 @@ class SelectionMechanismAnalyzer:
 
         return pd.DataFrame(rows)
 
-    # ==================== 2.2 Ranking agreement (SHAP vs LLM vs fused) ====================
+    # ==================== 2.2 Ranking agreement and symmetry bias and imbalance (SHAP vs LLM vs fused) ====================
+    def _swap_prefix(self, feat: str, swap_rules: List[Tuple[str, str]]) -> Optional[str]:
+        """
+        Swap feature prefix according to rules. Returns swapped feature name or None if no rule matched.
+        Example: ll_xxx <-> rr_xxx ; lf_xxx <-> rf_xxx
+        """
+        if not isinstance(feat, str):
+            return None
+        for a, b in swap_rules:
+            if feat.startswith(a):
+                return b + feat[len(a):]
+            if feat.startswith(b):
+                return a + feat[len(b):]
+        return None
+
+    def _get_zone_prefix(self, feat: str, zones: List[str]) -> Optional[str]:
+        """
+        Extract zone prefix from feature name, assuming pattern like 'll_xxx', 'rf_xxx', etc.
+        Returns zone string if matched, else None.
+        """
+        if not isinstance(feat, str):
+            return None
+        for z in zones:
+            if feat.startswith(f"{z}_"):
+                return z
+        return None
+
+    def _zone_counts(self, ranked_feats: List[str], zones: List[str]) -> Dict[str, int]:
+        counts = {z: 0 for z in zones}
+        for f in ranked_feats:
+            z = self._get_zone_prefix(f, zones)
+            if z is not None:
+                counts[z] += 1
+        return counts
+
+    def _pair_imbalance(self, a: int, b: int) -> float:
+        """
+        Normalized imbalance within a pair. Range [0, 1].
+        0 means perfectly balanced; 1 means all mass on one side.
+        """
+        denom = a + b
+        return (abs(a - b) / denom) if denom > 0 else np.nan
+
+    def symmetry_bias_table(self, swap_rules: Optional[List[Tuple[str, str]]] = None, top_k: Optional[int] = None, rank_weighted: bool = True,) -> pd.DataFrame:
+        """
+        Measures whether a method tends to select symmetric semantic pairs together + side imbalance metrics.
+        """
+        if swap_rules is None:
+            swap_rules = [("ll_", "rr_"), ("lf_", "rf_"), ("lb_", "rb_"), ("ff_", "bb_")]
+
+        zones = ["ff", "bb", "rf", "lf", "rb", "lb", "rr", "ll"]
+        zone_pairs = [("ff", "bb"), ("rf", "lf"), ("rb", "lb"), ("rr", "ll")]
+
+        rows = []
+        for pred_obj in self.pred_objs:
+            comp_top_name = self.comp_top_name_tpl.format(pred_obj=pred_obj)
+            df = pd.read_csv(os.path.join(self.feat_path, comp_top_name))
+
+            # evaluate base_col + comp_cols (same scope as 2.2)
+            methods_to_check = [self.base_col] + list(self.comp_cols)
+            methods_to_check = [m for m in methods_to_check if m in df.columns]
+
+            for method in methods_to_check:
+                ranked = df[method].dropna().tolist()
+                if top_k is not None:
+                    ranked = ranked[:top_k]
+
+                # ---- side imbalance metrics (computed on SAME ranked list) ----
+                counts = self._zone_counts(ranked, zones)
+
+                pair_imbal = {}
+                pair_weights = {}
+                for a, b in zone_pairs:
+                    ia = counts.get(a, 0)
+                    ib = counts.get(b, 0)
+                    pair_imbal[f"imb_{a}_{b}"] = self._pair_imbalance(ia, ib)
+                    pair_weights[f"w_{a}_{b}"] = ia + ib
+
+                total_w = sum(pair_weights.values())
+                overall_imb = (
+                    sum(
+                        pair_weights[k] * pair_imbal[k.replace("w_", "imb_")]
+                        for k in pair_weights.keys()
+                    ) / total_w
+                ) if total_w > 0 else np.nan
+
+                # ---- symmetry completion metrics ----
+                feat_set = set(ranked)
+                rank_pos = {f: i for i, f in enumerate(ranked)}
+
+                seen_pairs = set()
+                completed = []
+                singletons = []
+
+                for f in ranked:
+                    sym = self._swap_prefix(f, swap_rules)
+                    if sym is None:
+                        continue
+
+                    key = tuple(sorted([f, sym]))
+                    if key in seen_pairs:
+                        continue
+                    seen_pairs.add(key)
+
+                    in_f = f in feat_set
+                    in_s = sym in feat_set
+
+                    if in_f and in_s:
+                        completed.append((f, sym))
+                    else:
+                        existing = f if in_f else sym
+                        missing = sym if in_f else f
+                        singletons.append((existing, missing))
+
+                denom = len(completed) + len(singletons)
+                sym_score = (len(completed) / denom) if denom > 0 else np.nan
+
+                out = {
+                    "target": pred_obj,
+                    "method": method,
+                    "top_k": top_k if top_k is not None else len(ranked),
+                    "pairs_completed": int(len(completed)),
+                    "pairs_singletons": int(len(singletons)),
+                    "symmetry_score": float(sym_score) if not np.isnan(sym_score) else np.nan,
+                    "side_imbalance_overall": float(overall_imb) if not np.isnan(overall_imb) else np.nan,
+                }
+
+                out.update(counts)
+                out.update(pair_imbal)
+
+                if rank_weighted:
+                    weights = []
+                    for a, b in completed:
+                        da = rank_pos.get(a, None)
+                        db = rank_pos.get(b, None)
+                        if da is None or db is None:
+                            continue
+                        weights.append(1.0 / (1.0 + abs(da - db)))
+                    out["symmetry_score_weighted"] = (float(sum(weights)) / denom) if denom > 0 else np.nan
+
+                rows.append(out)
+
+        return (
+            pd.DataFrame(rows)
+            .sort_values(["target", "symmetry_score"], ascending=[True, False])
+            .reset_index(drop=True)
+        )
+    
     def ranking_agreement_table(self) -> pd.DataFrame:
         """
         Computes Kendall tau between the ORDERINGS in the top{comp_top} table:
@@ -430,6 +576,7 @@ class SelectionMechanismAnalyzer:
 
         # force x-axis major ticks every 1
         plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+        plt.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%d'))
 
         plt.show()
 
@@ -466,6 +613,7 @@ class SelectionMechanismAnalyzer:
 
         # force x-axis major ticks every 1
         plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
+        plt.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%d'))
 
         plt.show()
 
@@ -617,6 +765,7 @@ class SelectionMechanismAnalyzer:
     def export_to_excel(self, out_xlsx_path: str, max_add: Optional[int] = None):
         # 2.2 ranking agreement (from table)
         agree_df = self.ranking_agreement_table()
+        sym_df = self.symmetry_bias_table(swap_rules=[("ll_", "rr_"), ("lf_", "rf_"), ("ff_", "bb_"), ("lb_", "rb_")], top_k=self.comp_top, rank_weighted=True)
 
         # core CV curves (for 2.1 and 2.4 too)
         curve_df = self.incremental_curves_cv(max_add=max_add)
@@ -681,8 +830,8 @@ if __name__ == "__main__":
         bootstrap_B=10,
         empirical_importance_type="gain",
         include_shap_if_available=False,   # set True only if you installed shap
-        noise_sigmas=[0.1, 0.3],
-        train_fracs=[0.7, 0.5],
+        noise_sigmas =[0.1, 0.25],
+        train_fracs = [0.9, 0.75],
     )
 
     out_xlsx = os.path.join(sm.feat_path, f"SelectionMechanismComp_{sm.flow_type}_all_targets.xlsx")
