@@ -458,7 +458,7 @@ class SignalRegimeAnalyzer:
             plt.gca().xaxis.set_major_formatter(mticker.FormatStrFormatter('%d'))
             
             if save:
-                save_name = f"{self.flow_type}_{t}_CV_Delta_{metric}_MeanStd.png"
+                save_name = f"{self.flow_type}_{t}_CVDelta_{metric}_MeanStd.png"
                 save_path = os.path.join(self.feat_path, save_name)
                 plt.tight_layout()
                 plt.savefig(save_path, dpi=400)
