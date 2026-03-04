@@ -8,6 +8,7 @@ from tqdm import tqdm
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns
 import lightgbm as lgb
@@ -182,8 +183,8 @@ class FlowValidator:
             for m in method_cols:
                 sub = plot_df[plot_df["method"] == m]
                 plt.plot(sub["top_n"], sub[metric], marker="o", label=m)
-            # show x axis ticks with only 10, 15, 20, 25
-            plt.xticks(top_n_cols)
+            # ensure x axis shows integer ticks with interval 1
+            plt.gca().xaxis.set_major_locator(mticker.MultipleLocator(1))
             # Add a horizontal baseline line for all-features
             plt.xlabel("Top-N features")
             plt.ylabel(metric.upper())
